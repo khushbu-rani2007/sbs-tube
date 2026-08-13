@@ -1,0 +1,17 @@
+/user/signup
+/user/login
+/user/subscribe/:channelId
+/user/unsubscribe/:channelId
+/user/profilepic
+/user/coverpic
+/user/findchannel/:channelId
+/video/upload
+/video/like/:videoId
+/video/dislike/:videoid
+/video/videobyid/:videoid
+/video/allvideo
+/video/allvideo/channelid
+/comment/addcomment/:videoId
+/comment/getallcomment/:videoId
+/comment/like/:commentId
+/comment/dislike/:commentId
