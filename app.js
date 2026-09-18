@@ -1,5 +1,6 @@
 require('dotenv').config()
 const express = require('express')
+const cors = require('cors')
 const app = express()
 const fileUpload = require ('express-fileupload')
 const bodyParser = require('body-parser')
@@ -11,6 +12,8 @@ const commentRouter = require('./routes/comment')
 
 
 connectDB();
+
+app.use(cors())
 
 app.use(fileUpload({
     useTempFiles:true,

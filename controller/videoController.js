@@ -45,7 +45,7 @@ const upload = async (req, res) => {
             thumbnailId: thumbnailId,
             thumbnailUrl: thumbnailUrl,
             uploadedBy: userId,
-            tags: req.body.tags,
+            tags: JSON.parse(req.body.tags),
             category:req.body.category
         })
 
@@ -226,6 +226,30 @@ const allVideo = async(req,res)=>{
     }
 }
 
+
+// ----------allvideo---------
+
+const allvideo = async(req,res)=>{
+    try
+    {
+        const videos = await video.find().populate('', 'channelName','profilepic')
+         console.log(videos)
+        res.status(200).json({
+            video:videos
+
+        })
+    }
+    catch(err)
+    {
+        console.log(err)
+        res.status(500).json({
+            error:err
+        })
+    }
+}
+
+
+
 const videosByChannelId = async(req,res)=>{
     try
     {
@@ -250,5 +274,8 @@ const videosByChannelId = async(req,res)=>{
         })
     }
 }
+
+
+
 
 module.exports = { upload, like, unlike, videoById, allVideo, videosByChannelId}
