@@ -7,36 +7,120 @@ const jwt = require('jsonwebtoken')
 const cloudinary = require('../config/cloudinary')
 const { resource } = require('../app')
 
+// const upload = async (req, res) => {
+//     try {
+//         const token = req.headers.authorization.split(" ")[1]
+//         const tokenData = jwt.verify(token, process.env.SEC_KEY)
+//         const userId = tokenData._id
+
+//         let thumbnailId = "";
+//         let thumbnailUrl = "";
+
+//         if (req.files && req.files.thumbnail) {
+
+//             const thumbUpload = await cloudinary.uploader.upload(
+//                 req.files.thumbnail.tempFilePath,
+//                 {
+//                     resource_type: "image",
+//                     folder: "youtube/thumbnail"
+//                 }
+//             );
+
+//             thumbnailId = thumbUpload.public_id;
+//             thumbnailUrl = thumbUpload.secure_url;
+//         }
+
+//         const videoUpload = await cloudinary.uploader.upload(req.files.video.tempFilePath, {
+//             resource_type: 'video',
+//             folder: "youtube/video"
+//         }
+
+//         )
+
+//         const video = new Video({
+//             title: req.body.title,
+//             description: req.body.description,
+//             videoId: videoUpload.public_id,
+//             videoUrl: videoUpload.secure_url,
+//             thumbnailId: thumbnailId,
+//             thumbnailUrl: thumbnailUrl,
+//             uploadedBy: userId,
+//             tags: JSON.parse(req.body.tags),
+//             category:req.body.category
+//         })
+
+//         const uploadedVideo = await video.save()
+
+//         res.status(200).json({
+//             msg: "Videouploaded",
+//             video: uploadedVideo
+//         })
+//     }
+//     catch (err) {
+//         console.log(err)
+//         res.status(500).json({
+//             error: err
+//         })
+//     }
+// }
+
 const upload = async (req, res) => {
     try {
+        console.log("BODY:", req.body)
+        console.log("FILES:", req.files)
+
+        // Token check
+        if (!req.headers.authorization) {
+            return res.status(401).json({
+                message: "Authorization token missing"
+            })
+        }
+
         const token = req.headers.authorization.split(" ")[1]
         const tokenData = jwt.verify(token, process.env.SEC_KEY)
         const userId = tokenData._id
 
-        let thumbnailId = "";
-        let thumbnailUrl = "";
-
-        if (req.files && req.files.thumbnail) {
-
-            const thumbUpload = await cloudinary.uploader.upload(
-                req.files.thumbnail.tempFilePath,
-                {
-                    resource_type: "image",
-                    folder: "youtube/thumbnail"
-                }
-            );
-
-            thumbnailId = thumbUpload.public_id;
-            thumbnailUrl = thumbUpload.secure_url;
+        // File check
+        if (!req.files) {
+            return res.status(400).json({
+                message: "No files received"
+            })
         }
 
-        const videoUpload = await cloudinary.uploader.upload(req.files.video.tempFilePath, {
-            resource_type: 'video',
-            folder: "youtube/video"
+        if (!req.files.video) {
+            return res.status(400).json({
+                message: "Video file not received"
+            })
         }
 
+        if (!req.files.thumbnail) {
+            return res.status(400).json({
+                message: "Thumbnail file not received"
+            })
+        }
+
+        // Thumbnail upload
+        const thumbUpload = await cloudinary.uploader.upload(
+            req.files.thumbnail.tempFilePath,
+            {
+                resource_type: "image",
+                folder: "youtube/thumbnail"
+            }
         )
 
+        const thumbnailId = thumbUpload.public_id
+        const thumbnailUrl = thumbUpload.secure_url
+
+        // Video upload
+        const videoUpload = await cloudinary.uploader.upload(
+            req.files.video.tempFilePath,
+            {
+                resource_type: "video",
+                folder: "youtube/video"
+            }
+        )
+
+        // Save video
         const video = new Video({
             title: req.body.title,
             description: req.body.description,
@@ -46,20 +130,21 @@ const upload = async (req, res) => {
             thumbnailUrl: thumbnailUrl,
             uploadedBy: userId,
             tags: JSON.parse(req.body.tags),
-            category:req.body.category
+            category: req.body.category
         })
 
         const uploadedVideo = await video.save()
 
         res.status(200).json({
-            msg: "Videouploaded",
+            msg: "Video uploaded",
             video: uploadedVideo
         })
-    }
-    catch (err) {
-        console.log(err)
+
+    } catch (err) {
+        console.log("UPLOAD ERROR:", err)
+
         res.status(500).json({
-            error: err
+            error: err.message
         })
     }
 }
